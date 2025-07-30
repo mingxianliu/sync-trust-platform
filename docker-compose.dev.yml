@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # PHP Backend (Development)
+  backend-dev:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8080:80"
+    environment:
+      - CI_ENVIRONMENT=development
+    volumes:
+      - ./packages/backend:/var/www/html
+      - ./packages/backend/writable:/var/www/html/writable
+    depends_on:
+      - mysql-dev
+      - ipfs-dev
+    networks:
+      - synctrust-dev-network
+
+  # Frontend (Development)
+  frontend-dev:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./packages/frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend-dev
+    networks:
+      - synctrust-dev-network
+
+  # MySQL Database (Development)
+  mysql-dev:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: synctrust_dev
+      MYSQL_USER: synctrust
+      MYSQL_PASSWORD: synctrust123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ./packages/backend/phpbb_backup.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - synctrust-dev-network
+
+  # IPFS Node (Development)
+  ipfs-dev:
+    image: ipfs/kubo:latest
+    ports:
+      - "4002:4001"
+      - "5002:5001"
+      - "8081:8080"
+    volumes:
+      - ipfs_dev_data:/data/ipfs
+    networks:
+      - synctrust-dev-network
+
+  # Redis Cache (Development)
+  redis-dev:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - synctrust-dev-network
+
+  # phpMyAdmin (Development)
+  phpmyadmin-dev:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8082:80"
+    environment:
+      PMA_HOST: mysql-dev
+      PMA_PORT: 3306
+      PMA_USER: synctrust
+      PMA_PASSWORD: synctrust123
+    depends_on:
+      - mysql-dev
+    networks:
+      - synctrust-dev-network
+
+volumes:
+  mysql_dev_data:
+  ipfs_dev_data:
+  redis_dev_data:
+
+networks:
+  synctrust-dev-network:
+    driver: bridge

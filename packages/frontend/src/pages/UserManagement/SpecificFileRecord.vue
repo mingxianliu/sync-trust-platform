@@ -1,0 +1,179 @@
+<template>
+  <div>
+    <q-btn
+      icon="eva-arrow-back-outline"
+      size="md"
+      color="blue7"
+      flat
+      round
+      @click="handleBack"
+    />
+    {{ fileName }} 存取記錄
+  </div>
+  <q-card class="q-mt-md">
+    <q-table
+      v-model:pagination="pagination"
+      :rows-per-page-options="rowsPerPageOptions"
+      :rows="tableListData.List"
+      :columns="columns"
+      :table-header-class="'bg-indigo-1 text-blue6'"
+      no-data-label="'No Results'"
+      row-key="name"
+      flat
+      @request="changePagination"
+    >
+      <template #body-cell="props">
+        <q-td :props="props">
+          <template v-if="props.col.name === 'Status'">
+            <div :class="props.value.classes">
+              {{ props.value.label }}
+            </div>
+          </template>
+
+          <template v-else>
+            {{ props.value }}
+          </template>
+        </q-td>
+      </template>
+    </q-table>
+  </q-card>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { useStore } from 'vuex';
+
+const store = useStore();
+const router = useRouter();
+const route = useRoute();
+
+const fileNo = computed(() => route.params.fileNo);
+const fileName = ref('');
+
+const columns = ref([
+  {
+    name: 'CreateTime',
+    label: '上鏈日期',
+    align: 'left',
+    field: 'CreateTime',
+    style: 'width: 250px;',
+    sortable: false,
+  },
+  {
+    name: 'FileName',
+    label: '檔名',
+    align: 'left',
+    field: 'FileName',
+    style: 'max-width: 200px;',
+    classes: 'ellipsis',
+    sortable: false,
+  },
+  {
+    name: 'SenderOrgName',
+    label: '發送組織',
+    align: 'left',
+    field: 'SenderOrgName',
+    sortable: false,
+  },
+  {
+    name: 'SenderName',
+    label: '發送人',
+    align: 'left',
+    field: 'SenderName',
+    sortable: false,
+  },
+  {
+    name: 'ReceiveOrgName',
+    label: '保存組織',
+    align: 'left',
+    field: 'ReceiveOrgName',
+    sortable: false,
+  },
+  {
+    name: 'ReceiveName',
+    label: '接收人',
+    align: 'left',
+    field: 'ReceiveName',
+    sortable: false,
+  },
+  {
+    name: 'Status',
+    label: '保存狀態',
+    align: 'left',
+    field: 'Status',
+    classes: 'ellipsis',
+    sortable: false,
+    format: (val) => {
+      switch (val) {
+        case '0':
+          return { label: '未接收', classes: 'is-unreceived' };
+        case '1':
+          return { label: '已下載', classes: 'is-download' };
+        case '2':
+          return { label: '已解密', classes: 'is-decrypted' };
+      }
+    },
+  },
+  {
+    name: 'UpdateTime',
+    label: '狀態日期',
+    align: 'left',
+    field: 'UpdateTime',
+    style: 'width: 250px;',
+    sortable: false,
+  },
+]);
+const tableListData = ref({});
+let pagination = ref({
+  page: 1,
+});
+
+const rowsPerPageOptions = computed(() => {
+  return store.getters['app/getRowsPerPageOptions'];
+});
+const rowsPerPage = computed(() => {
+  return store.getters['app/getRowsPerPage'];
+});
+
+const changePagination = (requestProp) => {
+  if (requestProp?.pagination) {
+    pagination.value = requestProp.pagination;
+    store.commit('app/setRowsPerPage', requestProp.pagination);
+  }
+  fetchList();
+};
+
+const fetchList = () => {
+  const formData = new FormData();
+  formData.append('FileNo', fileNo.value);
+
+  store.dispatch('sentFile/getRecordList', formData).then((res) => {
+    tableListData.value.List = res.List;
+    if (res.List.length > 0) {
+      fileName.value = res.List[0].FileName;
+    }
+  });
+};
+
+const handleBack = () => {
+  router.go(-1);
+};
+
+onMounted(() => {
+  pagination.value.rowsPerPage = rowsPerPage.value;
+  fetchList();
+});
+</script>
+
+<style lang="scss" scoped>
+.ipfs-box {
+  max-width: 12vw;
+  word-break: break-all;
+  white-space: normal;
+  padding: 20px;
+  background: $blue4;
+  color: $blue2;
+  box-shadow: 0px 0px 0px 10px white inset;
+}
+</style>

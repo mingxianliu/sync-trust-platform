@@ -1,0 +1,31 @@
+{
+  "name": "synctrust-monorepo",
+  "version": "1.0.0",
+  "description": "SyncTrust Monorepo - Backend and Frontend",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd packages/backend && php spark serve",
+    "dev:frontend": "cd packages/frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd packages/backend && composer install --no-dev",
+    "build:frontend": "cd packages/frontend && npm run build",
+    "install:all": "npm install && cd packages/backend && composer install && cd ../frontend && npm install",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd packages/backend && php spark test",
+    "test:frontend": "cd packages/frontend && npm run test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd packages/backend && composer run-script phpcs",
+    "lint:frontend": "cd packages/frontend && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+} 

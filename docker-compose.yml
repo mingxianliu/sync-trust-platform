@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # PHP Backend
+  backend:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - CI_ENVIRONMENT=production
+    volumes:
+      - ./packages/backend:/var/www/html
+      - ./packages/backend/writable:/var/www/html/writable
+    depends_on:
+      - mysql
+      - ipfs
+    networks:
+      - synctrust-network
+
+  # Frontend (Nginx)
+  frontend:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - synctrust-network
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: synctrust
+      MYSQL_USER: synctrust
+      MYSQL_PASSWORD: synctrust123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./packages/backend/phpbb_backup.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - synctrust-network
+
+  # IPFS Node
+  ipfs:
+    image: ipfs/kubo:latest
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+    networks:
+      - synctrust-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - synctrust-network
+
+volumes:
+  mysql_data:
+  ipfs_data:
+  redis_data:
+
+networks:
+  synctrust-network:
+    driver: bridge

@@ -1,0 +1,67 @@
+// app global css in SCSS form
+body {
+  font-family: 'Arial';
+}
+a {
+  text-decoration: none;
+}
+
+.text-main-color {
+  color: $mainGreen;
+}
+.bg-main-color {
+  background: $mainGreen;
+}
+
+.text-blue6 {
+  color: $blue6;
+}
+.bg-blue6 {
+  background: $blue6;
+}
+
+.text-blue7 {
+  color: $blue7;
+}
+.bg-blue7 {
+  background: $blue7;
+}
+
+.q-card {
+  border-radius: 8px;
+}
+
+.q-table__bottom {
+  background-color: #e8eaf6;
+}
+
+.btn-height {
+  height: 40px;
+}
+
+.d-inline{
+  display: inline;
+}
+
+.is-unreceived,
+.is-download,
+.is-decrypted {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 50px;
+  font-weight: bold;
+}
+.is- {
+  &unreceived {
+    background: $lightRed;
+    color: $red;
+  }
+  &download {
+    background: $yellow;
+    color: $brown;
+  }
+  &decrypted {
+    background: $lightGreen;
+    color: $green;
+  }
+}
